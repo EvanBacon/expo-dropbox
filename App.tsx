@@ -17,6 +17,8 @@ import {
   Text,
   View,
 } from "react-native";
+import { AntDesign } from "@expo/vector-icons";
+import { H1, B } from "@expo/html-elements";
 
 import MaterialIcons from "@expo/vector-icons/build/MaterialIcons";
 import AuthProvider from "./AuthProvider";
@@ -65,14 +67,17 @@ function SignInScreen() {
 
   return (
     <View style={styles.container}>
-      <Text>Login to Dropbox</Text>
-      <Button
-        disabled={!request}
+      <H1>Welcome to uploader</H1>
+      <AntDesign.Button
+        name="dropbox"
+        size={24}
+        color="white"
         onPress={() => {
           promptAsync();
         }}
-        title="Login"
-      />
+      >
+        <B style={{ fontSize: 16, color: "white" }}>Login with Dropbox</B>
+      </AntDesign.Button>
     </View>
   );
 }
