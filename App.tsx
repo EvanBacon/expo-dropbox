@@ -1,19 +1,28 @@
-import React from "react";
-import { StyleSheet, Button, Text, View } from "react-native";
-import {
-  useAuthRequest,
-  ResponseType,
-  makeRedirectUri,
-} from "expo-auth-session";
-
-import { maybeCompleteAuthSession } from "expo-web-browser";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
+import { createDrawerNavigator } from "@react-navigation/drawer";
+import { Dropbox } from "dropbox";
+import {
+  makeRedirectUri,
+  ResponseType,
+  useAuthRequest,
+} from "expo-auth-session";
+import { maybeCompleteAuthSession } from "expo-web-browser";
+import React from "react";
+import {
+  Button,
+  StyleSheet,
+  Dimensions,
+  ScaledSize,
+  Text,
+  View,
+} from "react-native";
+
+import MaterialIcons from "@expo/vector-icons/build/MaterialIcons";
+import AuthProvider from "./AuthProvider";
+import { TouchableOpacity } from "react-native-gesture-handler";
 
 maybeCompleteAuthSession();
-
-import { Dropbox } from "dropbox";
-import AuthProvider from "./AuthProvider";
 
 function useDropboxAuth() {
   const { setAsync } = React.useContext(AuthProvider.Context);
@@ -120,51 +129,104 @@ function HomeScreen() {
   );
 }
 
+function DrawerButton({ onPress }: any) {
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      style={{ paddingHorizontal: 16, paddingVertical: 8 }}
+    >
+      <MaterialIcons size={24} name="menu" color="black"></MaterialIcons>
+    </TouchableOpacity>
+  );
+}
+
 function SwitchApp() {
   const { isLoaded, setAsync, value } = React.useContext(AuthProvider.Context);
+
+  const [dimensions, setDimensions] = React.useState(Dimensions.get("window"));
+
+  React.useEffect(() => {
+    const onDimensionsChange = ({ window }: { window: ScaledSize }) => {
+      setDimensions(window);
+    };
+
+    Dimensions.addEventListener("change", onDimensionsChange);
+
+    return () => Dimensions.removeEventListener("change", onDimensionsChange);
+  }, []);
 
   if (!isLoaded) {
     return <View />;
   }
 
+  const isLargeScreen = dimensions.width >= 1024;
+
   return (
-    <Stack.Navigator>
-      {value == null ? (
-        // No token found, user isn't signed in
-        <Stack.Screen
-          name="SignIn"
-          component={SignInScreen}
-          options={{
-            title: "Sign in",
-            // When logging out, a pop animation feels intuitive
-            // You can remove this if you want the default 'push' animation
-            // animationTypeForReplace: state.isSignout ? 'pop' : 'push',
-          }}
-        />
-      ) : (
-        // User is signed in
-        <Stack.Screen
-          name="Home"
-          component={HomeScreen}
-          options={{
-            headerRightContainerStyle: {
-              marginRight: 12,
-            },
-            headerRight: () => (
-              <Button
-                title="Sign Out"
-                onPress={() => setAsync(null)}
-                color={"blue"}
+    <Drawer.Navigator drawerType={isLargeScreen ? "permanent" : undefined}>
+      <Drawer.Screen
+        name="Dropbox Demo"
+        options={{
+          drawerIcon: ({ size, color }) => (
+            <MaterialIcons size={size} color={color} name="folder" />
+          ),
+        }}
+      >
+        {({ navigation }) => (
+          <Stack.Navigator>
+            {value == null ? (
+              // No token found, user isn't signed in
+              <Stack.Screen
+                name="SignIn"
+                component={SignInScreen}
+                options={{
+                  title: "Sign in",
+                  // When logging out, a pop animation feels intuitive
+                  // You can remove this if you want the default 'push' animation
+                  // animationTypeForReplace: state.isSignout ? 'pop' : 'push',
+                  headerLeft: isLargeScreen
+                    ? undefined
+                    : () => (
+                        <DrawerButton
+                          onPress={() => navigation.toggleDrawer()}
+                        />
+                      ),
+                }}
               />
-            ),
-          }}
-        />
-      )}
-    </Stack.Navigator>
+            ) : (
+              // User is signed in
+              <Stack.Screen
+                name="Home"
+                component={HomeScreen}
+                options={{
+                  headerRightContainerStyle: {
+                    marginRight: 12,
+                  },
+                  headerRight: () => (
+                    <Button
+                      title="Sign Out"
+                      onPress={() => setAsync(null)}
+                      color={"blue"}
+                    />
+                  ),
+                  headerLeft: isLargeScreen
+                    ? undefined
+                    : () => (
+                        <DrawerButton
+                          onPress={() => navigation.toggleDrawer()}
+                        />
+                      ),
+                }}
+              />
+            )}
+          </Stack.Navigator>
+        )}
+      </Drawer.Screen>
+    </Drawer.Navigator>
   );
 }
 
 const Stack = createStackNavigator();
+const Drawer = createDrawerNavigator();
 
 export default function App() {
   return (
