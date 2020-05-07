@@ -7,6 +7,8 @@ import {
 } from "expo-auth-session";
 
 import { maybeCompleteAuthSession } from "expo-web-browser";
+import { NavigationContainer } from "@react-navigation/native";
+import { createStackNavigator } from "@react-navigation/stack";
 
 maybeCompleteAuthSession();
 
@@ -49,7 +51,7 @@ function useDropboxAuth() {
   return [request, response, promptAsync];
 }
 
-function LoginApp() {
+function SignInScreen() {
   const [request, res, promptAsync] = useDropboxAuth();
 
   return (
@@ -66,8 +68,9 @@ function LoginApp() {
   );
 }
 
-function MainApp({ accessToken }: any) {
+function HomeScreen() {
   const [dropbox, setDropbox] = React.useState<any>(null);
+  const { value: accessToken } = React.useContext(AuthProvider.Context);
 
   React.useEffect(() => {
     console.log("Signed in: ", accessToken);
@@ -118,22 +121,58 @@ function MainApp({ accessToken }: any) {
 }
 
 function SwitchApp() {
-  const { isLoaded, value } = React.useContext(AuthProvider.Context);
+  const { isLoaded, setAsync, value } = React.useContext(AuthProvider.Context);
 
   if (!isLoaded) {
     return <View />;
   }
-  if (value) {
-    return <MainApp accessToken={value} />;
-  }
-  return <LoginApp />;
+
+  return (
+    <Stack.Navigator>
+      {value == null ? (
+        // No token found, user isn't signed in
+        <Stack.Screen
+          name="SignIn"
+          component={SignInScreen}
+          options={{
+            title: "Sign in",
+            // When logging out, a pop animation feels intuitive
+            // You can remove this if you want the default 'push' animation
+            // animationTypeForReplace: state.isSignout ? 'pop' : 'push',
+          }}
+        />
+      ) : (
+        // User is signed in
+        <Stack.Screen
+          name="Home"
+          component={HomeScreen}
+          options={{
+            headerRightContainerStyle: {
+              marginRight: 12,
+            },
+            headerRight: () => (
+              <Button
+                title="Sign Out"
+                onPress={() => setAsync(null)}
+                color={"blue"}
+              />
+            ),
+          }}
+        />
+      )}
+    </Stack.Navigator>
+  );
 }
+
+const Stack = createStackNavigator();
 
 export default function App() {
   return (
-    <AuthProvider>
-      <SwitchApp />
-    </AuthProvider>
+    <NavigationContainer>
+      <AuthProvider>
+        <SwitchApp />
+      </AuthProvider>
+    </NavigationContainer>
   );
 }
 
