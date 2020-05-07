@@ -16,8 +16,9 @@ import {
   ScaledSize,
   Text,
   View,
+  Platform,
 } from "react-native";
-import { AntDesign } from "@expo/vector-icons";
+import { FontAwesome, AntDesign } from "@expo/vector-icons";
 import { H1, B } from "@expo/html-elements";
 
 import MaterialIcons from "@expo/vector-icons/build/MaterialIcons";
@@ -61,16 +62,30 @@ function useDropboxAuth() {
 
   return [request, response, promptAsync];
 }
+import { useHover } from "react-native-web-hooks";
 
 function SignInScreen() {
   const [request, res, promptAsync] = useDropboxAuth();
 
+  const ref = React.useRef(null);
+  const isHovered = useHover(ref);
   return (
     <View style={styles.container}>
       <H1>Welcome to uploader</H1>
       <AntDesign.Button
+        ref={ref}
         name="dropbox"
         size={24}
+        style={[
+          {
+            backgroundColor: "blue",
+            ...Platform.select({
+              web: { transitionDuration: "150ms" },
+              default: {},
+            }),
+          },
+          isHovered && { backgroundColor: "#0d0dc3" },
+        ]}
         color="white"
         onPress={() => {
           promptAsync();
@@ -79,6 +94,33 @@ function SignInScreen() {
         <B style={{ fontSize: 16, color: "white" }}>Login with Dropbox</B>
       </AntDesign.Button>
     </View>
+  );
+}
+
+function IconButton({ title, style, ...props }: any) {
+  const ref = React.useRef(null);
+  const isHovered = useHover(ref);
+
+  return (
+    <FontAwesome.Button
+      ref={ref}
+      {...props}
+      size={24}
+      style={[
+        style,
+        {
+          backgroundColor: "blue",
+          ...Platform.select({
+            web: { transitionDuration: "150ms" },
+            default: {},
+          }),
+        },
+        isHovered && { backgroundColor: "#0d0dc3" },
+      ]}
+      color="white"
+    >
+      <B style={{ fontSize: 16, color: "white" }}>{title}</B>
+    </FontAwesome.Button>
   );
 }
 
@@ -96,40 +138,39 @@ function HomeScreen() {
     setDropbox(dropbox);
   }, [accessToken]);
 
+  const onWrite = async () => {
+    if (dropbox) {
+      let filesCommitInfo = {
+        contents: JSON.stringify({ white: "claw" }),
+        path: "/transactions.json",
+        mode: {
+          ".tag": "overwrite",
+        } as DropboxTypes.files.WriteModeOverwrite,
+        autorename: false,
+        mute: false,
+      };
+      try {
+        const metadata = await dropbox.filesUpload(filesCommitInfo);
+        console.log(metadata);
+      } catch (error) {
+        console.info(`settings.json write failed. ${error}`);
+      }
+    }
+  };
+  const onRead = async () => {
+    if (dropbox) {
+      const res = await dropbox.filesListFolder({ path: "" });
+      console.log(res);
+    }
+  };
   return (
     <View style={styles.container}>
-      <Text>Welcome</Text>
-      <Button
-        onPress={async () => {
-          if (dropbox) {
-            let filesCommitInfo = {
-              contents: JSON.stringify({ white: "claw" }),
-              path: "/transactions.json",
-              mode: {
-                ".tag": "overwrite",
-              } as DropboxTypes.files.WriteModeOverwrite,
-              autorename: false,
-              mute: false,
-            };
-            try {
-              const metadata = await dropbox.filesUpload(filesCommitInfo);
-              console.log(metadata);
-            } catch (error) {
-              console.info(`settings.json write failed. ${error}`);
-            }
-          }
-        }}
-        title="Write"
-      />
-      <Button
-        onPress={async () => {
-          if (dropbox) {
-            const res = await dropbox.filesListFolder({ path: "" });
-            console.log(res);
-          }
-        }}
-        title="Read"
-      />
+      <H1>Uploader Home</H1>
+
+      <View style={{ marginBottom: 8 }}>
+        <IconButton onPress={onWrite} name="cloud-upload" title="Write" />
+      </View>
+      <IconButton onPress={onRead} name="list-alt" title="List" />
     </View>
   );
 }
