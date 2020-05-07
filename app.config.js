@@ -8,6 +8,9 @@ export default {
     resizeMode: "contain",
     backgroundColor: "#ffffff",
   },
+  web: {
+    favicon: "./assets/favicon.png",
+  },
   updates: {
     fallbackToCacheTimeout: 0,
   },
