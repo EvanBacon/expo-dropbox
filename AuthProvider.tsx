@@ -15,7 +15,7 @@ const shouldRehydrate = true;
 const defaultState = { isDark: false };
 
 async function cacheAsync(value: any) {
-  if (localStorage) {
+  if (global.localStorage) {
     localStorage.setItem(storageKey, JSON.stringify(value));
   } else {
     await SecureStore.setItemAsync(storageKey, JSON.stringify(value));
@@ -28,10 +28,10 @@ async function rehydrateAsync() {
   }
   try {
     let item = null;
-    if (localStorage) {
+    if (global.localStorage) {
       item = await localStorage.getItem(storageKey);
     } else {
-      item = await SecureStore.getItemAsync(storageKey);
+      // item = await SecureStore.getItemAsync(storageKey);
     }
     const data = JSON.parse(item as any);
     return data;

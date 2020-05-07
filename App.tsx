@@ -6,11 +6,11 @@ import {
   makeRedirectUri,
   ResponseType,
   useAuthRequest,
+  Prompt,
 } from "expo-auth-session";
 import { maybeCompleteAuthSession } from "expo-web-browser";
 import React from "react";
 import {
-  Button,
   StyleSheet,
   Dimensions,
   ScaledSize,
@@ -18,6 +18,7 @@ import {
   View,
   Platform,
 } from "react-native";
+import { Button } from "react-native-paper";
 import { FontAwesome, AntDesign } from "@expo/vector-icons";
 import { H1, B } from "@expo/html-elements";
 
@@ -41,18 +42,24 @@ function useDropboxAuth() {
       clientId: "pwad5frda4h3xy0",
       // There are no scopes so just pass an empty array
       scopes: [],
+      extraParams: {
+        force_reapprove: true,
+      },
       // Dropbox doesn't support PKCE
       usePKCE: false,
       // Implicit auth is universal, `.Code` will only work in native with `useProxy: true`.
       responseType: ResponseType.Token,
       // For usage in managed apps using the proxy
       redirectUri: makeRedirectUri({
+        preferLocalhost: true,
+        path: "redirect",
         // For usage in bare and standalone
         native: "com.bacon.dropbox://redirect",
       }),
     },
     discovery
   );
+  console.log(request?.redirectUri);
 
   React.useEffect(() => {
     if (response?.type === "success") {
@@ -63,36 +70,28 @@ function useDropboxAuth() {
   return [request, response, promptAsync];
 }
 import { useHover } from "react-native-web-hooks";
+import DropboxButton from "./DropboxButton";
+import DropboxIcon from "./DropboxIcon";
 
 function SignInScreen() {
   const [request, res, promptAsync] = useDropboxAuth();
+  const [loading, setLoading] = React.useState<boolean>(false);
 
-  const ref = React.useRef(null);
-  const isHovered = useHover(ref);
+  React.useEffect(() => {
+    setLoading(false);
+  }, [res]);
+
   return (
     <View style={styles.container}>
-      <H1>Welcome to uploader</H1>
-      <AntDesign.Button
-        ref={ref}
-        name="dropbox"
-        size={24}
-        style={[
-          {
-            backgroundColor: "blue",
-            ...Platform.select({
-              web: { transitionDuration: "150ms" },
-              default: {},
-            }),
-          },
-          isHovered && { backgroundColor: "#0d0dc3" },
-        ]}
-        color="white"
+      <H1>Expo Dropbox Auth</H1>
+      <DropboxButton
+        disabled={!request}
         onPress={() => {
+          setLoading(true);
           promptAsync();
         }}
-      >
-        <B style={{ fontSize: 16, color: "white" }}>Login with Dropbox</B>
-      </AntDesign.Button>
+        loading={loading}
+      />
     </View>
   );
 }
@@ -109,7 +108,7 @@ function IconButton({ title, style, ...props }: any) {
       style={[
         style,
         {
-          backgroundColor: "blue",
+          backgroundColor: DropboxIcon.color,
           ...Platform.select({
             web: { transitionDuration: "150ms" },
             default: {},
@@ -165,12 +164,16 @@ function HomeScreen() {
   };
   return (
     <View style={styles.container}>
-      <H1>Uploader Home</H1>
-
-      <View style={{ marginBottom: 8 }}>
-        <IconButton onPress={onWrite} name="cloud-upload" title="Write" />
+      <View style={{ alignItems: "stretch" }}>
+        <View style={{ marginBottom: 8 }}>
+          <IconButton
+            onPress={onWrite}
+            name="cloud-upload"
+            title="Write Files"
+          />
+        </View>
+        <IconButton onPress={onRead} name="list-alt" title="Read Files" />
       </View>
-      <IconButton onPress={onRead} name="list-alt" title="List" />
     </View>
   );
 }
@@ -181,7 +184,7 @@ function DrawerButton({ onPress }: any) {
       onPress={onPress}
       style={{ paddingHorizontal: 16, paddingVertical: 8 }}
     >
-      <MaterialIcons size={24} name="menu" color="black"></MaterialIcons>
+      <MaterialIcons size={24} name="menu" color="white"></MaterialIcons>
     </TouchableOpacity>
   );
 }
@@ -207,6 +210,17 @@ function SwitchApp() {
 
   const isLargeScreen = dimensions.width >= 1024;
 
+  const headerOptions = ({ navigation }: any) => ({
+    headerStyle: { backgroundColor: DropboxIcon.color },
+    headerTintColor: "white",
+    // When logging out, a pop animation feels intuitive
+    // You can remove this if you want the default 'push' animation
+    // animationTypeForReplace: state.isSignout ? 'pop' : 'push',
+    headerLeft: isLargeScreen
+      ? undefined
+      : () => <DrawerButton onPress={() => navigation.toggleDrawer()} />,
+  });
+
   return (
     <Drawer.Navigator drawerType={isLargeScreen ? "permanent" : undefined}>
       <Drawer.Screen
@@ -225,17 +239,8 @@ function SwitchApp() {
                 name="SignIn"
                 component={SignInScreen}
                 options={{
+                  ...headerOptions({ navigation }),
                   title: "Sign in",
-                  // When logging out, a pop animation feels intuitive
-                  // You can remove this if you want the default 'push' animation
-                  // animationTypeForReplace: state.isSignout ? 'pop' : 'push',
-                  headerLeft: isLargeScreen
-                    ? undefined
-                    : () => (
-                        <DrawerButton
-                          onPress={() => navigation.toggleDrawer()}
-                        />
-                      ),
                 }}
               />
             ) : (
@@ -244,23 +249,20 @@ function SwitchApp() {
                 name="Home"
                 component={HomeScreen}
                 options={{
+                  ...headerOptions({ navigation }),
                   headerRightContainerStyle: {
                     marginRight: 12,
                   },
                   headerRight: () => (
                     <Button
-                      title="Sign Out"
+                      uppercase={false}
+                      labelStyle={{ fontWeight: "500", fontFamily: "System" }}
                       onPress={() => setAsync(null)}
-                      color={"blue"}
-                    />
+                      color={"white"}
+                    >
+                      Sign Out
+                    </Button>
                   ),
-                  headerLeft: isLargeScreen
-                    ? undefined
-                    : () => (
-                        <DrawerButton
-                          onPress={() => navigation.toggleDrawer()}
-                        />
-                      ),
                 }}
               />
             )}
