@@ -1,7 +1,6 @@
 import * as React from "react";
 import { Platform } from "react-native";
 import { Button } from "react-native-paper";
-import { useHover } from "react-native-web-hooks";
 
 import DropboxIcon from "./DropboxIcon";
 
@@ -9,7 +8,6 @@ import DropboxIcon from "./DropboxIcon";
 // or any pure javascript modules available in npm
 export default function DropboxButton({ onPress, loading }: any) {
   const ref = React.useRef(null);
-  const isHovered = useHover(ref);
 
   return (
     <Button
@@ -22,7 +20,6 @@ export default function DropboxButton({ onPress, loading }: any) {
             default: {},
           }),
         },
-        isHovered && { backgroundColor: "#4f90f9" },
       ]}
       loading={loading}
       labelStyle={{

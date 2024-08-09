@@ -1,16 +1,14 @@
 {
-  "main": "./index",
+  "main": "expo-router/entry",
   "dependencies": {
     "@expo/html-elements": "^0.0.0-alpha.5",
     "@expo/metro-runtime": "~3.2.1",
     "@react-native-community/masked-view": "^0.1.10",
-    "@react-navigation/bottom-tabs": "^6.6.1",
-    "@react-navigation/drawer": "^6.7.2",
     "@react-navigation/native": "^6.1.18",
-    "@react-navigation/stack": "^6.4.1",
     "dropbox": "^4.0.30",
     "expo": "^51.0.26",
     "expo-auth-session": "~5.5.2",
+    "expo-router": "^3.5.21",
     "expo-secure-store": "~13.0.2",
     "react": "18.2.0",
     "react-dom": "18.2.0",
@@ -27,7 +25,6 @@
     "@babel/core": "^7.8.6",
     "@types/react": "~18.2.79",
     "@types/react-native": "~0.61.17",
-    "babel-preset-expo": "~11.0.0",
     "typescript": "~5.3.3"
   },
   "private": true

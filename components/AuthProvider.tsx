@@ -22,6 +22,12 @@ async function cacheAsync(value: any) {
   }
 }
 
+export function useSession() {
+  const { isLoaded, setAsync, value } = React.useContext(Context);
+
+  return { isLoaded, setAsync, value };
+}
+
 async function rehydrateAsync() {
   if (!shouldRehydrate || !SecureStore) {
     return defaultState;
@@ -42,7 +48,6 @@ async function rehydrateAsync() {
 
 export default function Provider({ children }: any) {
   const [internalValue, setInternalValue] = React.useState(null);
-  // const [isDark, setIsDark] = React.useState(false);
   const [isLoaded, setLoaded] = React.useState(false);
 
   React.useEffect(() => {
