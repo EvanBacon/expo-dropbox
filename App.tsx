@@ -6,7 +6,6 @@ import {
   makeRedirectUri,
   ResponseType,
   useAuthRequest,
-  Prompt,
 } from "expo-auth-session";
 import { maybeCompleteAuthSession } from "expo-web-browser";
 import React from "react";
@@ -17,14 +16,14 @@ import {
   Text,
   View,
   Platform,
+  TouchableOpacity,
 } from "react-native";
 import { Button } from "react-native-paper";
-import { FontAwesome, AntDesign } from "@expo/vector-icons";
+import { FontAwesome } from "@expo/vector-icons";
 import { H1, B } from "@expo/html-elements";
 
-import MaterialIcons from "@expo/vector-icons/build/MaterialIcons";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import AuthProvider from "./AuthProvider";
-import { TouchableOpacity } from "react-native-gesture-handler";
 
 maybeCompleteAuthSession();
 
@@ -39,7 +38,7 @@ function useDropboxAuth() {
   // Request
   const [request, response, promptAsync] = useAuthRequest(
     {
-      clientId: "pwad5frda4h3xy0",
+      clientId: "v4do7f6fn731h96",
       // There are no scopes so just pass an empty array
       scopes: [],
       extraParams: {
